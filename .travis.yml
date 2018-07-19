@@ -17,3 +17,14 @@ before_install:
 
 script:
   - make test-coverage codecov
+
+stages:
+  - name: push to dockerhub
+    if: tag IS present
+
+jobs:
+  include:
+    - stage: push to dockerhub
+      script:
+        - PKG_OS=linux make build
+        - DOCKER_PUSH_LATEST=true make docker-push
