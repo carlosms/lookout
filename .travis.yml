@@ -18,6 +18,10 @@ before_install:
 script:
   - make test-coverage codecov
 
+stages:
+  - name: release to github
+    if: tag IS present
+
 jobs:
   include:
     - stage: "Tests"
@@ -35,6 +39,17 @@ jobs:
         - export PY_OUT_DIR=py
         - mkdir -p "$PY_OUT_DIR" && python3 -m grpc_tools.protoc -Isdk --python_out=$PY_OUT_DIR --grpc_python_out=$PY_OUT_DIR sdk/*.proto
       name: "Protobuf code generation"
+    - stage: release to github
+      script:
+        - make packages-sdk
+      deploy:
+        provider: releases
+        api_key: $GITHUB_TOKEN
+        file_glob: true
+        file: build/*.tar.gz
+        skip_cleanup: true
+        on:
+          all_branches: true
 
 cache:
   directories:
