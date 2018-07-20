@@ -8,6 +8,10 @@ addons:
     - gcc-6
     - g++-6
 
+os:
+  - linux
+  - osx
+
 osx_image: xcode9.4
 
 go:
@@ -21,21 +25,21 @@ before_install:
 
 jobs:
   include:
-    - stage: "Tests"
-      name: "Unit Tests"
-      script: make test
-      matrix:
-        include:
-          os:
-            - linux
-            - osx
+    - script: make test
+    - script: make test-sdk
     - stage: release to github
       name: linux packages
-      matrix:
-        include:
-          os:
-            - linux
-            - osx
+      os: linux
+      script:
+        - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+            export PKG_OS="darwin";
+          else;
+            export PKG_OS="linux";
+          fi
+        - make packages-sdk
+    - stage: release to github
+      name: osx packages
+      os: osx
       script:
         - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
             export PKG_OS="darwin";
