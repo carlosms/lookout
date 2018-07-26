@@ -129,9 +129,7 @@ func (c *ServeCommand) initWatcher() (lookout.Watcher, error) {
 
 		return watcher, nil
 	case json.Provider:
-		return json.NewWatcher(&json.WatchOptions{
-			Reader: os.Stdin,
-		})
+		return json.NewWatcher(os.Stdin, &lookout.WatchOptions{})
 	default:
 		return nil, fmt.Errorf("provider %s not supported", c.Provider)
 	}

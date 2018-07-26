@@ -15,22 +15,17 @@ import (
 // Provider is the name
 const Provider = "json"
 
-// WatchOptions options to use in the Watcher constructor.
-type WatchOptions struct {
-	Reader io.Reader
-}
-
 // Watcher watches for new json events in the console
 type Watcher struct {
-	o       *WatchOptions
+	o       *lookout.WatchOptions
 	scanner *bufio.Scanner
 }
 
 // NewWatcher returns a new json console watcher
-func NewWatcher(o *WatchOptions) (*Watcher, error) {
+func NewWatcher(reader io.Reader, o *lookout.WatchOptions) (*Watcher, error) {
 	return &Watcher{
 		o:       o,
-		scanner: bufio.NewScanner(o.Reader),
+		scanner: bufio.NewScanner(reader),
 	}, nil
 }
 
