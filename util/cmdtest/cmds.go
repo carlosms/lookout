@@ -18,8 +18,8 @@ import (
 var CmdTimeout = time.Minute
 
 // default path to binaries
-var dummyBin = "build/bin/dummy"
-var lookoutBin = "build/bin/lookout"
+var dummyBin = "../../build/bin/dummy"
+var lookoutBin = "../../build/bin/lookout"
 
 // function to stop running commands
 // redefined in StoppableCtx
