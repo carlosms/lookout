@@ -19,7 +19,7 @@ type IntegrationSuite struct {
 
 func (suite *IntegrationSuite) SetupSuite() {
 	suite.ctx, suite.stop = cmdtest.StoppableCtx()
-	cmdtest.StartDummy(suite.ctx)
+	cmdtest.StartDummy(suite.ctx, suite.Require())
 }
 
 func (suite *IntegrationSuite) TearDownSuite() {
@@ -27,12 +27,12 @@ func (suite *IntegrationSuite) TearDownSuite() {
 }
 
 func (suite *IntegrationSuite) TestReview() {
-	r := cmdtest.RunCli(suite.ctx, "review", "ipv4://localhost:10302")
+	r := cmdtest.RunCli(suite.ctx, suite.Require(), "review", "ipv4://localhost:10302")
 	cmdtest.GrepTrue(r, "posting analysis")
 }
 
 func (suite *IntegrationSuite) TestPush() {
-	r := cmdtest.RunCli(suite.ctx, "push", "ipv4://localhost:10302")
+	r := cmdtest.RunCli(suite.ctx, suite.Require(), "push", "ipv4://localhost:10302")
 	cmdtest.GrepTrue(r, "dummy comment for push event")
 }
 

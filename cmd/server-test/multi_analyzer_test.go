@@ -22,12 +22,12 @@ type MultiDummyIntegrationSuite struct {
 }
 
 func (suite *MultiDummyIntegrationSuite) SetupTest() {
-	cmdtest.ResetDB()
+	cmdtest.ResetDB(suite.Require())
 
 	suite.ctx, suite.stop = cmdtest.StoppableCtx()
-	cmdtest.StartDummy(suite.ctx)
-	cmdtest.StartDummy(suite.ctx, "--analyzer", "ipv4://localhost:10303")
-	suite.r, suite.w = cmdtest.StartServe(suite.ctx, "--provider", "json", "-c",
+	cmdtest.StartDummy(suite.ctx, suite.Require())
+	cmdtest.StartDummy(suite.ctx, suite.Require(), "--analyzer", "ipv4://localhost:10303")
+	suite.r, suite.w = cmdtest.StartServe(suite.ctx, suite.Require(), "--provider", "json", "-c",
 		"../../fixtures/double_dummy_config.yml", "dummy-repo-url")
 
 	// make sure server started correctly

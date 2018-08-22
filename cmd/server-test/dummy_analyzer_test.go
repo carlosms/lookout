@@ -22,12 +22,12 @@ type DummyIntegrationSuite struct {
 }
 
 func (suite *DummyIntegrationSuite) SetupTest() {
-	cmdtest.ResetDB()
+	cmdtest.ResetDB(suite.Require())
 
 	suite.ctx, suite.stop = cmdtest.StoppableCtx()
-	cmdtest.StartDummy(suite.ctx)
-	suite.r, suite.w = cmdtest.StartServe(suite.ctx, "--provider", "json", "-c",
-		"../../fixtures/dummy_config.yml", "dummy-repo-url")
+	cmdtest.StartDummy(suite.ctx, suite.Require())
+	suite.r, suite.w = cmdtest.StartServe(suite.ctx, suite.Require(),
+		"--provider", "json", "-c", "../../fixtures/dummy_config.yml", "dummy-repo-url")
 
 	// make sure server started correctly
 	cmdtest.GrepTrue(suite.r, "Starting watcher")
