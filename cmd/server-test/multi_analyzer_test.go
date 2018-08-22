@@ -48,18 +48,17 @@ func (suite *MultiDummyIntegrationSuite) TestSuccessReview() {
 	cmdtest.GrepTrue(suite.r, "processing pull request")
 	cmdtest.GrepTrue(suite.r, "posting analysis")
 	found, buf := cmdtest.Grep(suite.r, `status=success`)
-
 	suite.Require().Truef(found, "'%s' not found in:\n%s", `status=success`, buf.String())
 
-	// TODO (carlosms): bug, buf.String() returns the unread portion of the buffer
-	// only, test may fail if results come in different order
+	st := buf.String()
+
 	suite.Require().Contains(
-		buf.String(),
+		st,
 		`{"analyzer-name":"Dummy1","file":"provider/common.go","text":"The file has increased in 5 lines."}`,
 		"no comments from the first analyzer")
 
 	suite.Require().Contains(
-		buf.String(),
+		st,
 		`{"analyzer-name":"Dummy2","file":"provider/common.go","text":"The file has increased in 5 lines."}`,
 		"no comments from the second analyzer")
 }
