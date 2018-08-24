@@ -3,9 +3,6 @@
 package server_test
 
 import (
-	"context"
-	"fmt"
-	"io"
 	"testing"
 
 	"github.com/src-d/lookout/util/cmdtest"
@@ -14,11 +11,7 @@ import (
 )
 
 type DummyIntegrationSuite struct {
-	suite.Suite
-	ctx  context.Context
-	stop func()
-	r    io.Reader
-	w    io.WriteCloser
+	IntegrationSuite
 }
 
 func (suite *DummyIntegrationSuite) SetupTest() {
@@ -35,11 +28,6 @@ func (suite *DummyIntegrationSuite) SetupTest() {
 
 func (suite *DummyIntegrationSuite) TearDownTest() {
 	suite.stop()
-}
-
-func (suite *DummyIntegrationSuite) sendEvent(json string) {
-	_, err := fmt.Fprintln(suite.w, json)
-	suite.Require().NoError(err)
 }
 
 const successJSON = `{"event":"review", "internal_id": "1", "number": 1, "commit_revision":{"base":{"internal_repository_url":"https://github.com/src-d/lookout.git","reference_name":"refs/heads/master","hash":"4eebef102d7979570aadf69ff54ae1ffcca7ce00"},"head":{"internal_repository_url":"https://github.com/src-d/lookout.git","reference_name":"refs/heads/master","hash":"d304499cb2a9cad3ea260f06ad59c1658db4763d"}}}`

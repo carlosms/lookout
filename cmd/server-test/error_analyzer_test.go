@@ -5,8 +5,6 @@ package server_test
 import (
 	"context"
 	"errors"
-	"fmt"
-	"io"
 	"testing"
 
 	"github.com/src-d/lookout"
@@ -28,11 +26,7 @@ func (a *errAnalyzer) NotifyPushEvent(ctx context.Context, e *lookout.PushEvent)
 }
 
 type ErrorAnalyzerIntegrationSuite struct {
-	suite.Suite
-	ctx  context.Context
-	stop func()
-	r    io.Reader
-	w    io.WriteCloser
+	IntegrationSuite
 }
 
 func (suite *ErrorAnalyzerIntegrationSuite) startAnalyzer(ctx context.Context, a lookout.AnalyzerServer) error {
@@ -71,11 +65,6 @@ func (suite *ErrorAnalyzerIntegrationSuite) SetupTest() {
 
 func (suite *ErrorAnalyzerIntegrationSuite) TearDownTest() {
 	suite.stop()
-}
-
-func (suite *ErrorAnalyzerIntegrationSuite) sendEvent(json string) {
-	_, err := fmt.Fprintln(suite.w, json)
-	suite.Require().NoError(err)
 }
 
 func (suite *ErrorAnalyzerIntegrationSuite) TestAnalyzerErr() {

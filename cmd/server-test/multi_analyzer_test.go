@@ -3,9 +3,6 @@
 package server_test
 
 import (
-	"context"
-	"fmt"
-	"io"
 	"testing"
 
 	"github.com/src-d/lookout/util/cmdtest"
@@ -14,11 +11,7 @@ import (
 )
 
 type MultiDummyIntegrationSuite struct {
-	suite.Suite
-	ctx  context.Context
-	stop func()
-	r    io.Reader
-	w    io.WriteCloser
+	IntegrationSuite
 }
 
 func (suite *MultiDummyIntegrationSuite) SetupTest() {
@@ -36,11 +29,6 @@ func (suite *MultiDummyIntegrationSuite) SetupTest() {
 
 func (suite *MultiDummyIntegrationSuite) TearDownTest() {
 	suite.stop()
-}
-
-func (suite *MultiDummyIntegrationSuite) sendEvent(json string) {
-	_, err := fmt.Fprintln(suite.w, json)
-	suite.Require().NoError(err)
 }
 
 func (suite *MultiDummyIntegrationSuite) TestSuccessReview() {
