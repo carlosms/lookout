@@ -66,7 +66,7 @@ func castHash(sha1 *string) plumbing.Hash {
 	return plumbing.NewHash(*sha1)
 }
 
-func castPullRequest(ctx context.Context, r *lookout.RepositoryInfo, pr *github.PullRequest) *lookout.ReviewEvent {
+func castPullRequest(ctx context.Context, cloneURL string, pr *github.PullRequest) *lookout.ReviewEvent {
 	pre := &lookout.ReviewEvent{}
 	pre.Provider = Provider
 	pre.InternalID = strconv.FormatInt(pr.GetID(), 10)
@@ -75,14 +75,14 @@ func castPullRequest(ctx context.Context, r *lookout.RepositoryInfo, pr *github.
 	pre.RepositoryID = uint32(pr.GetHead().GetRepo().GetID())
 	pre.Source = castPullRequestBranch(ctx, pr.GetHead())
 	pre.Merge = lookout.ReferencePointer{
-		InternalRepositoryURL: r.CloneURL,
+		InternalRepositoryURL: cloneURL,
 		ReferenceName:         plumbing.ReferenceName(fmt.Sprintf("refs/pull/%d/merge", pr.GetNumber())),
 		Hash:                  pr.GetMergeCommitSHA(),
 	}
 
 	pre.Base = castPullRequestBranch(ctx, pr.GetBase())
 	pre.Head = lookout.ReferencePointer{
-		InternalRepositoryURL: r.CloneURL,
+		InternalRepositoryURL: cloneURL,
 		ReferenceName:         plumbing.ReferenceName(fmt.Sprintf("refs/pull/%d/head", pr.GetNumber())),
 		Hash:                  pr.GetHead().GetSHA(),
 	}

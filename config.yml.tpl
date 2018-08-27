@@ -6,6 +6,7 @@ analyzers:
 providers:
   github:
     comment_footer: "_If you have feedback about this comment, please, [tell us](%s)._"
+    webhooks: false
 
 repositories:
   - url: github.com/src-d/lookout

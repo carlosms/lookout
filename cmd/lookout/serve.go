@@ -204,9 +204,9 @@ func (c *ServeCommand) initPoster(conf Config) (lookout.Poster, error) {
 func (c *ServeCommand) initWatcher(conf Config) (lookout.Watcher, error) {
 	switch c.Provider {
 	case github.Provider:
-		watcher, err := github.NewWatcher(c.pool, &lookout.WatchOptions{
-			URLs: strings.Split(c.Positional.Repository, ","),
-		})
+		watcher, err := github.NewWatcher(c.pool,
+			&lookout.WatchOptions{URLs: strings.Split(c.Positional.Repository, ",")},
+			conf.Providers.Github)
 		if err != nil {
 			return nil, err
 		}

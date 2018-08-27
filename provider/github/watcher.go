@@ -19,6 +19,7 @@ const Provider = "github"
 // ProviderConfig represents the yml config
 type ProviderConfig struct {
 	CommentFooter string `yaml:"comment_footer"`
+	Webhooks      bool   `yaml:webhooks`
 }
 
 // don't call github more often than
@@ -36,18 +37,28 @@ var (
 type Watcher struct {
 	pool *ClientPool
 	o    *lookout.WatchOptions
+	conf ProviderConfig
 }
 
 // NewWatcher returns a new
-func NewWatcher(pool *ClientPool, o *lookout.WatchOptions) (*Watcher, error) {
+func NewWatcher(pool *ClientPool, o *lookout.WatchOptions, conf ProviderConfig) (*Watcher, error) {
 	return &Watcher{
 		pool: pool,
 		o:    o,
+		conf: conf,
 	}, nil
 }
 
 // Watch start to make request to the GitHub API and return the new events.
 func (w *Watcher) Watch(ctx context.Context, cb lookout.EventHandler) error {
+	if w.conf.Webhooks {
+		return w.WatchWebhooks(ctx, cb)
+	}
+
+	return w.WatchPoll(ctx, cb)
+}
+
+func (w *Watcher) WatchPoll(ctx context.Context, cb lookout.EventHandler) error {
 	ctxlog.Get(ctx).With(log.Fields{"urls": w.o.URLs}).Infof("Starting watcher")
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -59,6 +70,65 @@ func (w *Watcher) Watch(ctx context.Context, cb lookout.EventHandler) error {
 		go w.watchLoop(ctx, client, repos, w.processRepoPRs, cb, errCh)
 		go w.watchLoop(ctx, client, repos, w.processRepoEvents, cb, errCh)
 	}
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case err := <-errCh:
+		if lookout.NoErrStopWatcher.Is(err) {
+			return nil
+		}
+		return err
+	}
+}
+
+// TODO hardcoded values, move to config
+const (
+	webhookSecretKey = "webhooksecret"
+	webhookAddr      = ":8080"
+)
+
+func (w *Watcher) WatchWebhooks(ctx context.Context, cb lookout.EventHandler) error {
+	ctxlog.Get(ctx).With(log.Fields{"listen": webhookAddr}).Infof("Starting GitHub Webhook watcher")
+
+	errCh := make(chan error)
+
+	http.HandleFunc("/", func(writer http.ResponseWriter, r *http.Request) {
+		payload, err := github.ValidatePayload(r, []byte(webhookSecretKey))
+		if err != nil {
+			log.Errorf(err, "webhook payload could not be validated")
+		}
+		event, err := github.ParseWebHook(github.WebHookType(r), payload)
+		if err != nil {
+			log.Errorf(err, "webhook payload could not be parsed")
+		}
+
+		log.Debugf("webhook event received, type %T", event)
+		switch event := event.(type) {
+		case *github.PullRequestEvent:
+			log.Debugf("webhook PullRequestEvent, number %v", event.GetPullRequest().GetNumber())
+
+			if err := w.handlePr(ctx, cb, event.GetRepo().GetCloneURL(), event.GetPullRequest()); err != nil {
+				log.Errorf(err, "webhook callback failure")
+
+				// TODO send to channel?
+			}
+			// TODO push event
+		default:
+			// TODO
+		}
+	})
+
+	go func() {
+		err := http.ListenAndServe(webhookAddr, nil)
+
+		if err != nil {
+			log.Errorf(err, "ListenAndServe failed")
+
+			errCh <- err
+			return
+		}
+	}()
 
 	select {
 	case <-ctx.Done():
@@ -162,13 +232,7 @@ func (w *Watcher) handlePrs(ctx context.Context, cb lookout.EventHandler, r *loo
 	ctx, logger := ctxlog.WithLogFields(ctx, log.Fields{"repo": r.Link()})
 
 	for _, e := range prs {
-		ctx, _ := ctxlog.WithLogFields(ctx, log.Fields{
-			"pr-id":     e.GetID(),
-			"pr-number": e.GetNumber(),
-		})
-		event := castPullRequest(ctx, r, e)
-
-		if err := cb(event); err != nil {
+		if err := w.handlePr(ctx, cb, r.CloneURL, e); err != nil {
 			return err
 		}
 	}
@@ -181,6 +245,16 @@ func (w *Watcher) handlePrs(ctx context.Context, cb lookout.EventHandler, r *loo
 	}
 
 	return client.Validate(resp.Request.URL.String())
+}
+
+func (w *Watcher) handlePr(ctx context.Context, cb lookout.EventHandler, cloneURL string, pr *github.PullRequest) error {
+	ctx, _ = ctxlog.WithLogFields(ctx, log.Fields{
+		"pr-id":     pr.GetID(),
+		"pr-number": pr.GetNumber(),
+	})
+	event := castPullRequest(ctx, cloneURL, pr)
+
+	return cb(event)
 }
 
 func (w *Watcher) handleEvents(ctx context.Context, cb lookout.EventHandler, r *lookout.RepositoryInfo,
