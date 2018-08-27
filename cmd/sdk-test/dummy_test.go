@@ -3,7 +3,6 @@
 package sdk_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/src-d/lookout/util/cmdtest"
@@ -11,31 +10,29 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type IntegrationSuite struct {
-	suite.Suite
-	ctx  context.Context
-	stop func()
+type SDKDummyTestSuite struct {
+	cmdtest.IntegrationSuite
 }
 
-func (suite *IntegrationSuite) SetupSuite() {
-	suite.ctx, suite.stop = cmdtest.StoppableCtx()
-	cmdtest.StartDummy(suite.ctx, suite.Require())
+func (suite *SDKDummyTestSuite) SetupSuite() {
+	suite.StoppableCtx()
+	suite.StartDummy()
 }
 
-func (suite *IntegrationSuite) TearDownSuite() {
-	suite.stop()
+func (suite *SDKDummyTestSuite) TearDownSuite() {
+	suite.Stop()
 }
 
-func (suite *IntegrationSuite) TestReview() {
-	r := cmdtest.RunCli(suite.ctx, suite.Require(), "review", "ipv4://localhost:10302")
+func (suite *SDKDummyTestSuite) TestReview() {
+	r := suite.RunCli("review", "ipv4://localhost:10302")
 	cmdtest.GrepTrue(r, "posting analysis")
 }
 
-func (suite *IntegrationSuite) TestPush() {
-	r := cmdtest.RunCli(suite.ctx, suite.Require(), "push", "ipv4://localhost:10302")
+func (suite *SDKDummyTestSuite) TestPush() {
+	r := suite.RunCli("push", "ipv4://localhost:10302")
 	cmdtest.GrepTrue(r, "dummy comment for push event")
 }
 
-func TestIntegrationSuite(t *testing.T) {
-	suite.Run(t, new(IntegrationSuite))
+func SDKTestDummyTestSuite(t *testing.T) {
+	suite.Run(t, new(SDKDummyTestSuite))
 }

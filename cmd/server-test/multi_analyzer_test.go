@@ -15,20 +15,20 @@ type MultiDummyIntegrationSuite struct {
 }
 
 func (suite *MultiDummyIntegrationSuite) SetupTest() {
-	cmdtest.ResetDB(suite.Require())
+	suite.ResetDB()
 
-	suite.ctx, suite.stop = cmdtest.StoppableCtx()
-	cmdtest.StartDummy(suite.ctx, suite.Require())
-	cmdtest.StartDummy(suite.ctx, suite.Require(), "--analyzer", "ipv4://localhost:10303")
-	suite.r, suite.w = cmdtest.StartServe(suite.ctx, suite.Require(), "--provider", "json", "-c",
-		"../../fixtures/double_dummy_config.yml", "dummy-repo-url")
+	suite.StoppableCtx()
+	suite.StartDummy()
+	suite.StartDummy("--analyzer", "ipv4://localhost:10303")
+	suite.r, suite.w = suite.StartServe("--provider", "json",
+		"-c", "../../fixtures/double_dummy_config.yml", "dummy-repo-url")
 
 	// make sure server started correctly
 	cmdtest.GrepTrue(suite.r, "Starting watcher")
 }
 
 func (suite *MultiDummyIntegrationSuite) TearDownTest() {
-	suite.stop()
+	suite.Stop()
 }
 
 func (suite *MultiDummyIntegrationSuite) TestSuccessReview() {

@@ -52,19 +52,19 @@ func (suite *ErrorAnalyzerIntegrationSuite) startAnalyzer(ctx context.Context, a
 }
 
 func (suite *ErrorAnalyzerIntegrationSuite) SetupTest() {
-	cmdtest.ResetDB(suite.Require())
+	suite.ResetDB()
 
-	suite.ctx, suite.stop = cmdtest.StoppableCtx()
-	suite.startAnalyzer(suite.ctx, &errAnalyzer{})
-	suite.r, suite.w = cmdtest.StartServe(suite.ctx, suite.Require(), "--provider", "json", "-c",
-		"../../fixtures/dummy_config.yml", "dummy-repo-url")
+	suite.StoppableCtx()
+	suite.startAnalyzer(suite.Ctx, &errAnalyzer{})
+	suite.r, suite.w = suite.StartServe("--provider", "json",
+		"-c", "../../fixtures/dummy_config.yml", "dummy-repo-url")
 
 	// make sure server started correctly
 	cmdtest.GrepTrue(suite.r, "Starting watcher")
 }
 
 func (suite *ErrorAnalyzerIntegrationSuite) TearDownTest() {
-	suite.stop()
+	suite.Stop()
 }
 
 func (suite *ErrorAnalyzerIntegrationSuite) TestAnalyzerErr() {

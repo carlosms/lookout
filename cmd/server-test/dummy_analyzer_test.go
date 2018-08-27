@@ -15,19 +15,19 @@ type DummyIntegrationSuite struct {
 }
 
 func (suite *DummyIntegrationSuite) SetupTest() {
-	cmdtest.ResetDB(suite.Require())
+	suite.ResetDB()
 
-	suite.ctx, suite.stop = cmdtest.StoppableCtx()
-	cmdtest.StartDummy(suite.ctx, suite.Require())
-	suite.r, suite.w = cmdtest.StartServe(suite.ctx, suite.Require(),
-		"--provider", "json", "-c", "../../fixtures/dummy_config.yml", "dummy-repo-url")
+	suite.StoppableCtx()
+	suite.StartDummy()
+	suite.r, suite.w = suite.StartServe("--provider", "json",
+		"-c", "../../fixtures/dummy_config.yml", "dummy-repo-url")
 
 	// make sure server started correctly
 	cmdtest.GrepTrue(suite.r, "Starting watcher")
 }
 
 func (suite *DummyIntegrationSuite) TearDownTest() {
-	suite.stop()
+	suite.Stop()
 }
 
 const successJSON = `{"event":"review", "internal_id": "1", "number": 1, "commit_revision":{"base":{"internal_repository_url":"https://github.com/src-d/lookout.git","reference_name":"refs/heads/master","hash":"4eebef102d7979570aadf69ff54ae1ffcca7ce00"},"head":{"internal_repository_url":"https://github.com/src-d/lookout.git","reference_name":"refs/heads/master","hash":"d304499cb2a9cad3ea260f06ad59c1658db4763d"}}}`

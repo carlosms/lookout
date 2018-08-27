@@ -3,19 +3,16 @@
 package server_test
 
 import (
-	"context"
 	"fmt"
 	"io"
 
-	"github.com/stretchr/testify/suite"
+	"github.com/src-d/lookout/util/cmdtest"
 )
 
 type IntegrationSuite struct {
-	suite.Suite
-	ctx  context.Context
-	stop func()
-	r    io.Reader
-	w    io.WriteCloser
+	cmdtest.IntegrationSuite
+	r io.Reader
+	w io.WriteCloser
 }
 
 func (suite *IntegrationSuite) sendEvent(json string) {
