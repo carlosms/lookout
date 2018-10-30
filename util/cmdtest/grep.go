@@ -59,16 +59,20 @@ func (s *IntegrationSuite) Grep(r io.Reader, substr string) (bool, *bytes.Buffer
 			t := scanner.Text()
 			fmt.Fprintln(buf, t)
 			if strings.Contains(t, substr) {
-				foundch <- true
+				found = true
 				break
 			}
 		}
 		if err := scanner.Err(); err != nil {
 			fmt.Fprintln(os.Stderr, "reading input:", err)
 		}
+
+		foundch <- found
 	}()
 	select {
 	case <-time.After(GrepTimeout):
+		fmt.Printf(" >>>> Grep Timeout reached")
+
 		break
 	case found = <-foundch:
 	}
