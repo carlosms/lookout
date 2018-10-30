@@ -74,6 +74,7 @@ func (s *IntegrationSuite) Grep(r io.Reader, substr string) (bool, *bytes.Buffer
 	}
 
 	fmt.Printf("----------------\nGrep called for substr %q. Found: %v. Read:\n%s\n\n", substr, found, buf.String())
+	fmt.Printf("The complete command output so far:\n%s", s.logBuf.String())
 
 	return found, buf
 }
