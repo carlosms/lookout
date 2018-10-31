@@ -36,9 +36,11 @@ func (suite *DummyIntegrationSuite) TearDownTest() {
 
 func (suite *DummyIntegrationSuite) TestSuccessReview() {
 	suite.sendEvent(successJSON)
-	suite.GrepTrue(suite.r, "processing pull request")
-	suite.GrepTrue(suite.r, `{"analyzer-name":"Dummy","file":"another.go","line":3,"text":"This line exceeded`)
-	suite.GrepTrue(suite.r, `status=success`)
+	suite.GrepAll(suite.r, []string{
+		`processing pull request`,
+		`{"analyzer-name":"Dummy","file":"another.go","line":3,"text":"This line exceeded`,
+		`status=success`,
+	})
 }
 
 func (suite *DummyIntegrationSuite) TestReviewDontPostSameComment() {
@@ -53,8 +55,10 @@ func (suite *DummyIntegrationSuite) TestReviewDontPostSameComment() {
 	}
 
 	suite.sendEvent(rev0Event.String())
-	suite.GrepTrue(suite.r, `{"analyzer-name":"Dummy","file":"dummy.go","line":5,"text":"This line exceeded`)
-	suite.GrepTrue(suite.r, `status=success`)
+	suite.GrepAll(suite.r, []string{
+		`{"analyzer-name":"Dummy","file":"dummy.go","line":5,"text":"This line exceeded`,
+		`status=success`,
+	})
 
 	rev1Event := &jsonReviewEvent{
 		ReviewEvent: &lookout.ReviewEvent{
@@ -65,22 +69,12 @@ func (suite *DummyIntegrationSuite) TestReviewDontPostSameComment() {
 	}
 
 	suite.sendEvent(rev1Event.String())
-	suite.GrepTrue(suite.r, "processing pull request")
-
-	found, buf := suite.Grep(suite.r, `status=success`)
-	suite.Require().Truef(found, "'%s' not found in:\n%s", `status=success`, buf.String())
-
-	st := buf.String()
-
-	suite.Require().Contains(
-		st,
+	suite.GrepAll(suite.r, []string{
+		"processing pull request",
 		`{"analyzer-name":"Dummy","file":"dummy.go","text":"The file has increased`,
-	)
-
-	suite.Require().NotContains(
-		st,
 		`{"analyzer-name":"Dummy","file":"dummy.go","line":5,"text":"This line exceeded`,
-	)
+		`status=success`,
+	})
 }
 
 func (suite *DummyIntegrationSuite) TestWrongRevision() {
@@ -107,9 +101,11 @@ func (suite *DummyIntegrationSuite) TestSuccessPush() {
 		},
 	}
 	suite.sendEvent(pushEvent.String())
-	suite.GrepTrue(suite.r, "processing push")
-	suite.GrepTrue(suite.r, "comments can belong only to review event but 1 is given")
-	suite.GrepTrue(suite.r, `status=success`)
+	suite.GrepAll(suite.r, []string{
+		"processing push",
+		"comments can belong only to review event but 1 is given",
+		`status=success`,
+	})
 }
 
 func TestDummyIntegrationSuite(t *testing.T) {

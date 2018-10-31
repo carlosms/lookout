@@ -13,8 +13,10 @@ import (
 // GrepTimeout defines timeout grep is waiting for substring
 var GrepTimeout = 30 * time.Second
 
-// GrepTrue reads from reader until finds substring with timeout or fails printing read lines
-func (s *IntegrationSuite) GrepTrue(r io.Reader, substr string) {
+// GrepTrue reads from reader until finds substring with timeout or fails,
+// printing read lines. It returns the text read from the reader up
+// to the substr match
+func (s *IntegrationSuite) GrepTrue(r io.Reader, substr string) string {
 	found, buf := s.Grep(r, substr)
 	if !found {
 		fmt.Printf("'%s' is not found in output:\n", substr)
@@ -22,6 +24,21 @@ func (s *IntegrationSuite) GrepTrue(r io.Reader, substr string) {
 		fmt.Printf("\nThe complete command output:\n%s", s.logBuf.String())
 		s.Stop()
 		s.Suite.T().FailNow()
+	}
+
+	return buf.String()
+}
+
+func (s *IntegrationSuite) GrepAll(r io.Reader, strs []string) {
+	// If the stream from stdin is read sequentially with Grep(), there was
+	// an erratic behaviour where some lines where not processed.
+
+	// Wait until the last substr is found
+	read := s.GrepTrue(r, strs[len(strs)-1])
+
+	// Look for the previous messages in the lines read up to that last substr
+	for _, st := range strs {
+		s.Require().Contains(read, st)
 	}
 }
 
