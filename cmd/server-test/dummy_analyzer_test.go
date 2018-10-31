@@ -69,12 +69,17 @@ func (suite *DummyIntegrationSuite) TestReviewDontPostSameComment() {
 	}
 
 	suite.sendEvent(rev1Event.String())
-	suite.GrepAll(suite.r, []string{
-		"processing pull request",
+	st := suite.GrepTrue(suite.r, `status=success`)
+
+	suite.Require().Contains(
+		st,
 		`{"analyzer-name":"Dummy","file":"dummy.go","text":"The file has increased`,
+	)
+
+	suite.Require().NotContains(
+		st,
 		`{"analyzer-name":"Dummy","file":"dummy.go","line":5,"text":"This line exceeded`,
-		`status=success`,
-	})
+	)
 }
 
 func (suite *DummyIntegrationSuite) TestWrongRevision() {
