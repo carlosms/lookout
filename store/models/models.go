@@ -101,7 +101,8 @@ func newComment(r *ReviewEvent, c *lookout.Comment) *Comment {
 // Organization is a persisted model for an Organization (e.g. a GitHub App
 // installation). It contains settings for a group of repositories.
 // The primary key should be (Provider,InternalID), but kallax does not support
-// composite or string keys
+// composite or string keys. It also does not support setting uniqueness on
+// multiple columns.
 type Organization struct {
 	kallax.Model `pk:"id"`
 	ID           kallax.ULID
