@@ -286,12 +286,12 @@ func (o *DBOrganizationOperator) Save(ctx context.Context, provider string, orgI
 // are no records in the DB, it returns "" without error.
 func (o *DBOrganizationOperator) Config(ctx context.Context, provider string, orgID string) (string, error) {
 	m, err := o.getOrganization(ctx, provider, orgID)
-	if err != nil && err != kallax.ErrNotFound {
-		return "", err
-	}
-
 	if err == kallax.ErrNotFound {
 		return "", nil
+	}
+
+	if err != nil {
+		return "", err
 	}
 
 	return m.Config, nil
